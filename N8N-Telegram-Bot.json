@@ -1,0 +1,106 @@
+{
+  "name": "N8N-Telegram-Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        -112
+      ],
+      "id": "4161c026-b56c-4ba6-8942-081242cb44d1",
+      "name": "Telegram Trigger",
+      "webhookId": "0d0d1e4d-6e59-4b85-8c2f-bf18f6c0a4c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "uSXWprfEmmSMYgZN",
+          "name": "n8n-telegram-bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "من دستیار پزشک ام فقط سوال پزشکی جواب می دهم"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -16,
+        -112
+      ],
+      "id": "2bc75c27-9732-42cd-b9a7-b88efc3fa2ec",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "x-ai/grok-4.1-fast:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "a8ba35f8-7485-4822-b1c8-caa13be009da",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "MjO5aXW9kXllW1yr",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "80a1f6b5-29e5-466d-9dc2-7e388f13b4d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c61910da226c3f6c843820bf2298790f4f5a9b02872d09f9f49dd60b4f2279cf"
+  },
+  "id": "kLFkxF4OKy6wehfH",
+  "tags": []
+}
