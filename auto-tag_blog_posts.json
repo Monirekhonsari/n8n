@@ -1,0 +1,406 @@
+{
+  "name": "auto-tag_blog_posts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auto-tag",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2032,
+        80
+      ],
+      "id": "f677fef4-17a2-4529-9d8b-797039aa5ff3",
+      "name": "Webhook",
+      "webhookId": "04c487e0-08f2-48eb-ac25-c3d6afa133a3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1440,
+        288
+      ],
+      "id": "91ada5e5-58b0-4634-8cdf-9f165174d09c",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "H6vzkQ2RLVQmCsfn",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.metadata.source }}\n{{ $json.metadata.line }}\n\n\n",
+        "options": {
+          "systemMessage": "من دستیار هوش مصنوعی هستم\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1024,
+        80
+      ],
+      "id": "73f9afed-5235-4ed2-82ea-553de2f22dcb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "auto-tag_blog_posts"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Log"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        208
+      ],
+      "id": "4a5c5255-66d7-49ef-8d58-1f5fcf5b73b1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lBRtOPhUoYNiNlEi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "channel": "#alerts",
+        "text": "Auto-tag Blog Posts error: {$json.error.message}",
+        "otherOptions": {},
+        "attachments": []
+      },
+      "id": "3e3f918e-b71e-4eef-8c10-cdcff6fc405b",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        80
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "uTI49hHYYA9n1P38",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "id": "5c78fe3e-9da9-4280-b7d4-75abe03afd93",
+      "name": "Supabase Query",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        416
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "qmOiAztNaQ9boAlh",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.metadata.source }}\n{{ $json.metadata.line }}\n"
+      },
+      "id": "4e8aca46-296d-4406-80de-33594f04a3cf",
+      "name": "Window Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -928,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 120,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        416
+      ],
+      "id": "d0d21926-45f2-4f0e-9c6f-02981f7161f1",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1808,
+        80
+      ],
+      "id": "2475ad3a-e03c-4b10-bca8-a0f51da918e5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "for item in _input.all():\n    item.json[\"message\"] = item.json.get(\"text\", \"\")\nreturn _input.all()\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1584,
+        80
+      ],
+      "id": "fbc1843f-c4c7-48aa-9183-7532a43f90d9",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -1328,
+        80
+      ],
+      "id": "4ff90611-4b7d-4e32-bdd7-8346776bd891",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "qmOiAztNaQ9boAlh",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -1344,
+        272
+      ],
+      "id": "4ad0ffcc-864c-4e6e-b996-fd54d6ca5dfc",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1024,
+        272
+      ],
+      "id": "6cab9ba4-a088-47bc-ac1d-17446eb557ec",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YT8RVrBxxgP0R06x",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Query",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Query": {
+      "ai_vectorStore": [
+        []
+      ]
+    },
+    "Window Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "063e6c1a-0e4d-4351-91b4-98aeb5c7e276",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c61910da226c3f6c843820bf2298790f4f5a9b02872d09f9f49dd60b4f2279cf"
+  },
+  "id": "JXkGHrgC2aHRbvhG",
+  "tags": []
+}
