@@ -1,0 +1,428 @@
+{
+  "name": "customer_sentiment_analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "raw",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "a89f0f53-7942-4c9e-807e-f846e94ea448",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "for item in _input.all():\n    item.json[\"message\"] = item.json.get(\"text\", \"\")\nreturn _input.all()\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "2d7523e0-f543-46ed-a5b8-722d3bb3ae43",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "name": "Vector_Tool",
+        "description": "Vector context"
+      },
+      "id": "38d559ec-61b0-4e3f-8f25-78d2bfe09e60",
+      "name": "Vector Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        384,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "channel": "#alerts",
+        "text": "✅ Workflow executed successfully\n\n",
+        "otherOptions": {},
+        "attachments": []
+      },
+      "id": "fb854ffc-5ab1-4ade-a976-2ed2c0fa0386",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -144
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "lN1TWOzJCUxKLGMW",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "pinecone-n8n-768",
+          "mode": "list",
+          "cachedResultName": "pinecone-n8n-768"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        -192
+      ],
+      "id": "b9931570-b6ff-4249-8744-691d017a8c0f",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "hvyUg95Dlkk9mKPS",
+          "name": "PineconeApi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "pinecone-n8n-768",
+          "mode": "list",
+          "cachedResultName": "pinecone-n8n-768"
+        },
+        "embeddingBatchSize": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -32
+      ],
+      "id": "2460f8a7-d384-43f0-9c84-65c454539eba",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "8MVq2VuDsANdvvi7",
+          "name": "PineconeApi account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        176
+      ],
+      "id": "6644559d-2ef5-4cb1-b81b-0d12ed6739ef",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "n8n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -416,
+        -32
+      ],
+      "id": "62b14208-e5c9-41aa-91ea-5a27093a1bb9",
+      "name": "Webhook",
+      "webhookId": "172af715-1239-4956-bce8-1b72df5cfd6e"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        160,
+        176
+      ],
+      "id": "71b7e9a6-8c02-4609-9442-f3179fe1c7d3",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "W2ksoE9NX8ZI5POF",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        432,
+        160
+      ],
+      "id": "b903a674-f724-4ccc-af50-269044eefb17",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "3YPz7lUx2xHhEEFk",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "{{ $json.pageContent }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant.\nYou may ONLY use tools that are connected to this AI Agent in n8n.\nIf you cannot use a tool, answer normally without calling any tool.\nDo not mention or call any tool by name.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        432,
+        -32
+      ],
+      "id": "8fc704a1-e84a-4f0d-8d11-d884239c1fcb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $execution.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        368
+      ],
+      "id": "d30798a4-5f36-406a-9655-e3155d965843",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "=Search and retrieve relevant chunks from Pinecone index for customer sentiment analysis.\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        224
+      ],
+      "id": "786365a6-86e7-4f59-a5ff-d388b603b6e2",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "Customer Sentiment Logs",
+        "sheetsUi": {
+          "sheetValues": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        752,
+        -16
+      ],
+      "id": "62f6e624-ea45-42de-9cab-5df63c21274d",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lBRtOPhUoYNiNlEi",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Tool": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        []
+      ],
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          },
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "cebb3c19-7dc0-4dd1-b9d1-e135e238c9dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c61910da226c3f6c843820bf2298790f4f5a9b02872d09f9f49dd60b4f2279cf"
+  },
+  "id": "mJQFtmlfxrWkgjMz",
+  "tags": []
+}
